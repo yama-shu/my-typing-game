@@ -5,6 +5,8 @@ import { WORD_LIST } from './wordList';
 import WordDisplay from './components/WordDisplay';
 import StartScreen from './components/StartScreen';
 import QuitButton from './components/QuitButton';
+// 新しく作成したタイマーコンポーネントをインポート
+import Timer from './components/Timer';
 
 const TypingGame = () => {
   // --- State定義 ---
@@ -12,18 +14,24 @@ const TypingGame = () => {
   const [currentWord, setCurrentWord] = useState("");
   const [typedCount, setTypedCount] = useState(0);
   const [gameStatus, setGameStatus] = useState("idle");
+  
+  // タイムアタック用のState
+  const [startTime, setStartTime] = useState(null); // ゲーム開始時刻
+  const [finalTime, setFinalTime] = useState(null); // 最終結果タイム
 
   // --- ゲームロジック ---
   const startGame = () => {
-    // リストをシャッフル
+    // リストをシャッフルして先頭10個を取得
     const shuffled = [...WORD_LIST].sort(() => Math.random() - 0.5);
-    
-    // 【修正】シャッフルした中から「先頭の10個」だけを切り出す
     const selectedWords = shuffled.slice(0, 10);
     
     setWordQueue(selectedWords);
     setCurrentWord(selectedWords[0]);
     setTypedCount(0);
+    
+    // タイマー開始
+    setStartTime(Date.now());
+    setFinalTime(null); // 前回の結果をリセット
     setGameStatus("playing");
   };
 
@@ -32,11 +40,18 @@ const TypingGame = () => {
     setGameStatus("idle");
     setCurrentWord("");
     setTypedCount(0);
+    setStartTime(null);
   };
 
   const nextWord = useCallback(() => {
     const nextQueue = wordQueue.slice(1);
+    
+    // 次の単語がない ＝ ゲームクリア
     if (nextQueue.length === 0) {
+      // 終了タイムを確定させる
+      const finishTime = ((Date.now() - startTime) / 1000).toFixed(2);
+      setFinalTime(finishTime);
+
       setGameStatus("finished");
       setCurrentWord("");
       triggerConfetti();
@@ -45,7 +60,7 @@ const TypingGame = () => {
       setCurrentWord(nextQueue[0]);
       setTypedCount(0);
     }
-  }, [wordQueue]);
+  }, [wordQueue, startTime]); // startTimeを依存配列に追加
 
   const triggerConfetti = () => {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
@@ -54,7 +69,6 @@ const TypingGame = () => {
   // --- キー入力監視 ---
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // プレイ中以外でもスペースキーでスタートできるようにする
       if (gameStatus !== "playing") {
         if (e.code === 'Space' && gameStatus === 'idle') startGame();
         return;
@@ -76,27 +90,49 @@ const TypingGame = () => {
   // --- 表示 (Render) ---
   return (
     <div className="game-container" style={{ position: 'relative' }}>
-      {/* 待機状態（idle）のときだけスタート画面を表示 */}
+      
+      {/* 待機状態 */}
       {gameStatus === "idle" && (
         <StartScreen onStart={startGame} />
       )}
 
-      {/* ゲームプレイ中の表示 */}
+      {/* ゲームプレイ中 */}
       {gameStatus === "playing" && (
-        <WordDisplay 
-          currentWord={currentWord} 
-          typedCount={typedCount} 
-        />
+        <>
+          {/* ここにタイマーを表示 */}
+          <Timer startTime={startTime} />
+          
+          <WordDisplay 
+            currentWord={currentWord} 
+            typedCount={typedCount} 
+          />
+        </>
       )}
 
-      {/* 終了時のメッセージ */}
+      {/* 終了画面 */}
       <div className="message-area">
         {gameStatus === "finished" && (
           <div className="message-congrats">
             Congratulations!!
-            <div>
-              <button className="start-button" style={{marginTop: '20px'}} onClick={startGame}>
+            {/* 結果タイムの表示 */}
+            <div className="result-time">
+              Score: {finalTime} s
+            </div>
+            
+            {/* 【追加】ボタンを横並びにするエリア */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+              {/* Play Again ボタン */}
+              <button className="start-button" onClick={startGame}>
                 Play Again
+              </button>
+
+              {/* タイトルに戻るボタン (グレー色にして少し区別をつけています) */}
+              <button 
+                className="start-button" 
+                onClick={quitGame}
+                style={{ backgroundColor: '#6c757d' }}
+              >
+                Title
               </button>
             </div>
           </div>
@@ -107,7 +143,7 @@ const TypingGame = () => {
         {gameStatus === "playing" ? "Type the word above!" : ""}
       </p>
 
-      {/* プレイ中だけ表示される「タイトルに戻る」ボタン */}
+      {/* 戻るボタン (プレイ中のみ画面下に表示) */}
       {gameStatus === "playing" && (
         <div style={{ 
           position: 'absolute', 

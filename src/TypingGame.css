@@ -78,3 +78,23 @@
   80% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(1.0); }
 }
+
+.timer-display {
+  font-size: 24px;
+  color: #ffeb3b; /* 黄色で目立たせる */
+  margin-bottom: 20px;
+  font-weight: bold;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.timer-seconds {
+  font-size: 32px;
+  color: #fff;
+}
+
+/* 結果画面のタイム表示用 */
+.result-time {
+  font-size: 28px;
+  color: #61dafb;
+  margin: 10px 0;
+}
