@@ -1,0 +1,37 @@
+// src/wordList.js
+
+export const WORD_LIST = [
+  "javascript",
+  "react",
+  "component",
+  "hook",
+  "frontend",
+  "browser",
+  "interface",
+  "variable",
+  "function",
+  "render",
+  "programming",
+  "developer",
+  // 新しく追加する単語
+  "algorithm",
+  "argument",
+  "backend",
+  "bug",
+  "class",
+  "cloud",
+  "compiler",
+  "database",
+  "debugger",
+  "deployment",
+  "framework",
+  "git",
+  "inheritance",
+  "instance",
+  "library",
+  "middleware",
+  "network",
+  "object",
+  "repository",
+  "server"
+];
